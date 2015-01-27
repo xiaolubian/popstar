@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Popstar网页版</title>
+<link rel="Short Icon" type="text/css" href="ME.png" />
+<link rel="stylesheet" href="popstar.css" />
+<script type="text/javascript">
+	<!-- 
+	function goin() {
+		window.open("popstar.html");
+		window.close();
+	};
+	
+	function changeColor(event) {
+		console.info(event.id);
+		console.info(document.getElementById(event.id).innerHTML);
+		document.body.style.backgroundColor = document.getElementById(event.id).innerHTML.split("<")[0];
+	}
+	-->
+</script>
+</head>
+<body>
+	<header class="top">
+		<header class="top_up">
+			<ul>
+				<li><div id="blue" onclick="changeColor(this);" class="blue">blue<div></li>
+					<li><div id="pink" onclick="changeColor(this);"  class="pink">pink<div></li>
+						<li><div id="yellow" onclick="changeColor(this);" class="yellow">yellow<div></li>
+							<li><div id="green" onclick="changeColor(this);"  class="green">green<div></li>
+								<li><div id="orange" onclick="changeColor(this);"  class="orange">orange<div></li>
+			<ul>
+		</header>
+		<input id="goin" type="button" width="150" height="100" style="font-size:50px;" value="Go To Popstar" onclick="goin();"/>
+	</header>
+</body>
+</html> 
