@@ -204,6 +204,8 @@ function isEnd() {
 			
 			if(window.confirm("Try Again?")) {
 				init();
+			} else {
+				window.clearInterval(time);
 			}
 	}
 };
@@ -211,6 +213,8 @@ function isEnd() {
  * 初始化
  */
 function init(){
+	score = 0;
+	remove_id = 1;
 	time = setInterval(changeColor,500);
 	// 清空center中的所有原有star对象
 	var center = _$("center");
