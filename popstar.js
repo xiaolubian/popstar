@@ -2,10 +2,25 @@
  * 初始化单元格宽 、 高
  */
 var _X = _Y = 50;
+var SIZE1 = "12px";
+var SIZE2 = "20px";
 /**
  * box颜色集合
  */
-var colors = ["red","green","yellow","blue","orange"];
+var colors = ["red","green","yellow","blue","pink"];
+
+var colors2 = [	"#BFBFBF","#BF3EFF","#BEBEBE","#BDBDBD",
+"#BDB76B","#BCEE68","#BCD2EE","#BC8F8F",
+"#BBFFFF","#BABABA","#BA55D3","#B9D3EE",
+"#B8B8B8","#B8860B","#B7B7B7","#B5B5B5",
+"#B4EEB4","#B4CDCD","#B452CD","#B3EE3A",
+"#B3B3B3","#B2DFEE","#B23AEE","#B22222",
+"#B0E2FF","#B0E0E6","#B0C4DE","#B0B0B0",
+"#B03060","#AEEEEE","#ADFF2F","#ADD8E6",
+"#ADADAD","#ABABAB","#AB82FF","#AAAAAA",
+"#A9A9A9","#A8A8A8","#A6A6A6","#A52A2A",
+"#A4D3EE","#A3A3A3","#A2CD5A","#A2B5CD",
+"#A1A1A1","#A0522D","#A020F0","#9FB6CD"];                                                           
 /**
  * stars
  */
@@ -18,6 +33,10 @@ var allStars = new Array();
  * 分数
  */
 var score = 0;
+/**
+* time 
+*/
+var time = null;
 /**
  * 方块对象
  * 
@@ -32,6 +51,7 @@ var score = 0;
 function Box(boxDiv) {
 	this.boxDiv = boxDiv;
 };
+var remove_id = 1;
 /**
  * 清除单个box
  * 
@@ -40,19 +60,33 @@ function Box(boxDiv) {
  */
 function removeBox(i,boxId) {
 	_$(boxId).style.display = "none";// 不显示
-	// 从选中的数组中删除
-	//array.splice(i,1);
+	_$(boxId).id = remove_id;// 改变Id
+	remove_id++;
 }
 /**
  * 检查该对象关联的star数
  */
 function getStars() {
+	for(var i in array) {
+		var _star = _$(array[i]);
+		if(_star!=null){
+			_star.style.fontSize=SIZE1;
+		}
+	}
+	// 清空数组
 	array = [];
 	var id = this.id;
 	array = getCount(id);
-	log(array);
+	//log(array);
+	for(var i in array) {
+		var _star = _$(array[i]);
+		//log(_star);
+		_star.style.fontSize=SIZE2;
+	}
 	if(array.length >= 2) {
 		showMsg("count","你可以消灭 "+array.length+ " 个星星,共得 "+getScore(array.length)+" 分");
+	} else {
+		showMsg("count","")
 	}
 };
 /**
@@ -63,85 +97,135 @@ function clearStars() {
 	if(array.length == 1) {
 		return;
 	}
-	log("选中的数组元素 ："+array);
-	log("清除前 ： " + allStars.length);
+	score += getScore(array.length);
+	showMsg("score",score);
 	for(var i in array) {
+		var _id=array[i];
 		var _star = _$(array[i]);
 		if(!isNull(_star)){
-			// 移除数组
-			removeBox(i,array[i]);
 			var id_x = parseInt(_star.id.split("_")[0]);
 			var id_y = parseInt(_star.id.split("_")[1]);
-			log(id_x +" : " + id_y + " : "+allStars[id_x][id_y]);
-			var star_ = allStars[id_x][id_y];
-			// 从全局数组中移除
-			if(!isNull(star_)) {
-				allStars[id_x].splice(id_y,1);
+			removeBox(i,array[i]);
+			// 从将要消除的星星置为"00"
+			var star_ = allStars[id_x-1][id_y-1];
+			if(!isNull(star_) && star_!="00") {
+				allStars[id_x-1].splice(id_y-1,1,"00");
 			}
-			log(allStars[id_x]);
 		}
 	}
-	log("清除的数组元素 ："+array);
-	log("清除后 ： "+allStars.length);
-	score = parseInt(score) + parseInt(getScore(array.length));
-	//showMsg("score",("分数 " + score));
+	
 	moveY();
 	moveX();
+	isEnd();
+	//logAllStars();
 };
 /**
  * 水平方向的移动
  */
 function moveX() {
-	// 先进行竖直方向，在进行水平方向移动，
-	// if 最下面的一行有空
-	// else nothing
+	// 该处算法分析:去掉空行并按照顺序排序
+	//1.该行不为空
+	//2.该行在数组中排序和当前顺序一致时跳出到下一次开始
+	//3.不一致时,将当前所在行的数据更新,并将两列数据交换位置
+	var k=9;
+	for(var i=9;i>=0;i--) {
+		if(allStars[i][0]!="00") {
+			//log(i+" "+k);
+			if(i==k) {
+				k--;
+				continue;
+			}
+			var arr = [];
+			for(var j in allStars[i]) {
+				if(allStars[i][j]!="00") {
+					var id_y = parseInt(allStars[i][j].split("_")[1]);
+					var _star = _$(allStars[i][j]);
+					
+					var new_id = parseInt(k+1)+"_"+id_y;
+					_star.id = new_id;
+					//_star.innerHTML=new_id;
+					_star.style.left=(10-k)*_X+"px";
+					arr[j]=new_id;
+				} else {
+					arr[j]=allStars[i][j];
+				}
+			}
+			//log("arr:"+arr);
+			allStars[i]=allStars[k];
+			allStars[k]=arr;
+			k--;
+		}
+	}
 };
 /**
  * 竖直方向的移动
  */
 function moveY() {
-	for(var i=1;i<=10;i++) {
-		for(var j=1;j<=10;j++) {
-			var _id = i+"_"+j;
-			// 是否已消除
-			if(isHide(_id) && !isInAllStars(_id)) {
-				for(var k=j+1;k<=10;k++) {
-					var _star = _$(i+"_"+k);
-					log(_star +" "+isNull(_star) +" "+ ((parseInt(_star.style.top.split("px")[0]) + _Y) + "px"))
-					if(!isNull(_star) && isInAllStars(_star.id)) {
-						_star.style.top = ((parseInt(_star.style.top.split("px")[0]) + _Y) + "px");
-					}
-				}
+	for(var i in allStars) {
+		var k = 0;
+		for(var j in allStars[i]) {
+			if(allStars[i][j]!="00") {
+				var _star=_$(allStars[i][j]);
+				k++;
+				var id_x = parseInt(allStars[i][j].split("_")[0]);
+				allStars[i][j]=id_x+"_"+k;
+				// 星星id改变
+				_star.id = allStars[i][j];
+				// 星星高度改变
+				_star.style.top=(11-k)*_Y+"px";
+				//_star.innerHTML = _star.id;
+				var temp = allStars[i][k-1];
+				allStars[i][k-1]=allStars[i][j];
+				allStars[i][j]=temp;
 			}
 		}
 	}
 };
 /*判断是否死局*/
 function isEnd() {
+	if(remove_id == 100) {
+		alert("You Win! All stars you cleaned!");
+		window.clearInterval(time);
+		return ;
+	}
 	var _flag = true;
 	for(var i=1;i<=10;i++) {
 		for(var j=1;j<=10;j++) {
 			var _id = i+"_"+j;
-			if(getLURD(_id).length == 0) {
+			//log(_id + " " + getLURD(_id).length)
+			if(getLURD(_id).length != 0) {
 				_flag = false;
 				break;
 			}
 		}
 	}
-	return _flag;
+	//log(_flag);
+	if(_flag) {
+			
+			if(window.confirm("Try Again?")) {
+				init();
+			}
+	}
 };
 /**
  * 初始化
  */
 function init(){
+	time = setInterval(changeColor,500);
 	// 清空center中的所有原有star对象
 	var center = _$("center");
 	var childrens = center.childNodes;// childNodes属性
-	var len = childrens.length;
-	for(var i=0;i<len;i++) {
-		document.removeChild(childrens[i]);
-	}
+	// 清空center所有星星对象
+	center.innerHTML = "";
+//	log(childrens)
+//  var len = childrens.length;
+//	for(var i=0;i<len;i++) {
+//		log(childrens[i]);
+//		center.removeNode(childrens[i]);
+//	}
 	// 创建新的star对象
+	// 清空allStars数组
+	allStars = [];
 	for(var i=1;i<=10;i++) {
 		// 一维数组
 		var starArr = new Array();
@@ -171,7 +255,8 @@ function createBox(x,y) {
 	boxDiv.style.left = X;
 	boxDiv.style.top = Y;
 	boxDiv.style.backgroundColor = cls;
-	boxDiv.innerHTML = id;
+	boxDiv.style.fontSize=SIZE1;
+	//boxDiv.innerHTML = id;
 	boxDiv.addEventListener("mouseover",getStars,false);// 给对象绑定单击查询事件
 	boxDiv.addEventListener("click",clearStars,false);// 双击消除事件
 	
@@ -185,7 +270,7 @@ function createBox(x,y) {
 function _$(id) {
 	return document.getElementById(id);
 };
-
+/*日志*/
 function log(obj) {
 	if(console != null) {
 		console.info(obj);
@@ -195,58 +280,54 @@ function log(obj) {
 };
 /*显示信息*/
 function showMsg(id,msg) {
-	log(id)
 	_$(id).innerHTML = msg;
 };
 /**
- * 根据Id获取上下左右的ids,如果该元素已在数组中，则不需要重复添加
+ * 根据Id获取上下左右相同颜色的ids,如果该元素已在数组中，则不需要重复添加
  * 
  * @param id 
  */
 function getLURD(id) {
+	//log("该"+id+"上下左右")
 	var ids = id.split('_');
 	var x_ = parseInt(ids[0]);
 	var y_ = parseInt(ids[1]);
-	var left = _$((x_-1)+"_"+y_);//log(" left "+(x_-1)+"_"+y_+left);
-	var right = _$((x_+1)+"_"+y_);//log(" right "+(x_+1)+"_"+y_+right);
-	var up = _$((x_)+"_"+(y_+1));//log(" up "+(x_)+"_"+(y_+1)+up);
-	var down = _$((x_)+"_"+(y_-1));//log(" down "+(x_)+"_"+(y_-1)+down);
+	var left_id = (x_-1)+"_"+y_;
+	var right_id = (x_+1)+"_"+y_;
+	var up_id = (x_)+"_"+(y_+1);
+	var down_id = (x_)+"_"+(y_-1);
 	
-	var arr = new Array();
-//	log(isNull(left));
-//	log(isInArray(left.id));
-//	log(compareColor(id,left.id));
-	if(!isNull(left) && !isInArray(left.id) && compareColor(id,left.id)) {
+	var left = _$(left_id);//log(" left "+(x_-1)+"_"+y_+left);
+	var right = _$(right_id);//log(" right "+(x_+1)+"_"+y_+right);
+	var up = _$(up_id);//log(" up "+(x_)+"_"+(y_+1)+up);
+	var down = _$(down_id);//log(" down "+(x_)+"_"+(y_-1)+down);
+	
+//	log(left_id+" "+left);
+//	log(right_id+" "+right);
+//	log(up_id+" "+up);
+//	log(down_id+" "+down);
+	
+	var arr = new Array();	
+	// 判断是否在allStars中
+	// 判断是否在一个数组中出现
+	// 判断是否颜色相同
+	if(isInAllStars(left_id) && !isInArray(left_id) && compareColor(id,left_id)) {
 		arr.push(left);
 	}
-	if(!isNull(up) && !isInArray(up.id) && compareColor(id,up.id)) {
+	if(isInAllStars(up_id) && !isInArray(up_id) && compareColor(id,up_id)) {
 		arr.push(up);
 	}
-	if(!isNull(right) && !isInArray(right.id) && compareColor(id,right.id)) {
+	if(isInAllStars(right_id) && !isInArray(right_id) && compareColor(id,right_id)) {
 		arr.push(right);
 	}
-	if(!isNull(down) && !isInArray(down.id) && compareColor(id,down.id)) {
+	if(isInAllStars(down_id) && !isInArray(down_id) && compareColor(id,down_id)) {
 		arr.push(down);
 	}
 	return arr;
 };
-/*比较两个方块颜色是否一致*/
-function compareColor(id1,id2) {
-	return _$(id1).style.backgroundColor == _$(id2).style.backgroundColor;
-};
-/**
- * 判断一个对象是否为空
- * @param obj 要验证的对象
- */
-function isNull(obj) {
-	if(obj == undefined || obj == null || obj == "") {
-		return true;
-	}
-	return false;
-};
+
 /*通过Id获取stars数组*/
 function getCount(id) {
-	var ar = [];
 	// 此处的算法
 	// 1.将该元素id加入到array中
 	array.push(id);
@@ -263,6 +344,24 @@ function getCount(id) {
 	}
 	return array;
 }
+/*比较两个方块颜色是否一致*/
+function compareColor(id1,id2) {
+	//log("颜色比较 :"+id1+"    "+id2);
+	if(_$(id1) && _$(id2)) {
+		return _$(id1).style.backgroundColor == _$(id2).style.backgroundColor;
+	}
+	return false;
+};
+/**
+ * 判断一个对象是否为空
+ * @param obj 要验证的对象
+ */
+function isNull(obj) {
+	if(obj == undefined || obj == null || obj == "") {
+		return true;
+	}
+	return false;
+};
 /**
  * 判断该id是否在array中
  */
@@ -276,28 +375,34 @@ function isInArray(id) {
 	}
 	return boo;
 };
+/*是否在所有星星中*/
+function isInAllStars(id) {
+	var _flag = false;
+	var id_x = parseInt(id.split("_")[0]);
+	var id_y = parseInt(id.split("_")[1]);
+	if(id_x==0 || id_y==0 || id_x==11 || id_y==11 || isNull(_$(id))){
+		//log("在allStar中且没有消除:"+id+"    "+_flag);
+		return _flag;
+	}
+	
+	if(allStars[id_x-1][id_y-1] != undefined && allStars[id_x-1][id_y-1] != null  && allStars[id_x-1][id_y-1] != "00") {
+			_flag = true;
+	}
+	//log("在allStar中且没有消除:"+id+"  "+_flag)
+	return _flag;
+}
 /*通过数组元素个数获取分数*/
 function getScore(len) {
 	return 5*len*len;
 };
 
-function isHide(id) {
-	var _star = _$(id);
-	if(_star.style.display == "none") {
-		return true;
-	}
-	return false;
-};
-
-function isInAllStars(id) {
-	var flag_ = false;
-	for(var i in allStars) {
-		for(var j in allStars[i]) {
-			if(id == allStars[i][j]) {
-				flag_ = true;
-				break;
-			}
+function logAllStars() {
+		log("logAllStars");
+		for(var i in allStars) {
+			log(i+" "+allStars[i]);
 		}
-	}
-	return flag_;
+}
+
+function changeColor() {
+	document.body.style.backgroundColor = colors2[parseInt(Math.random()*48)];
 }
