@@ -215,7 +215,7 @@ function isEnd() {
 function init(){
 	score = 0;
 	remove_id = 1;
-	time = setInterval(changeColor,500);
+	//time = setInterval(changeColor,500);
 	// 清空center中的所有原有star对象
 	var center = _$("center");
 	var childrens = center.childNodes;// childNodes属性
